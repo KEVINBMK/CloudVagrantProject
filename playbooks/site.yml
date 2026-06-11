@@ -1,0 +1,11 @@
+---
+# Playbook principal — point d'entrée du déploiement
+# À compléter au fur et à mesure de l'ajout des rôles
+
+- name: Déploiement global de l'infrastructure
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Vérifier la connectivité
+      ansible.builtin.ping:

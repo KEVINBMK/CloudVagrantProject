@@ -1,0 +1,9 @@
+---
+# Variables cybersécurité (machine Master)
+
+security_tools:
+  - nmap
+  - nikto
+  - lynis
+
+firewall_default_policy: deny

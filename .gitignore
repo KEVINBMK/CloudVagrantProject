@@ -1,0 +1,22 @@
+# Vagrant
+.vagrant/
+*.log
+
+# Ansible
+*.retry
+.ansible/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets (ne jamais versionner)
+*.pem
+*.key
+.env

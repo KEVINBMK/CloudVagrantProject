@@ -1,0 +1,19 @@
+# Template Nginx — Cluster 1
+# À compléter par SIKU EMEDI JOSE
+
+server {
+    listen 80;
+    server_name {{ ansible_hostname }};
+
+    root {{ app_deploy_path }};
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php{{ php_version }}-fpm.sock;
+    }
+}

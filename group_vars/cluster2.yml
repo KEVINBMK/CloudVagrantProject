@@ -1,0 +1,7 @@
+---
+# Variables du Cluster 2 — Apache + PHP
+
+web_server: apache
+app_name: cluster2-apache-app
+app_deploy_path: /var/www/cluster2
+php_version: "8.1"

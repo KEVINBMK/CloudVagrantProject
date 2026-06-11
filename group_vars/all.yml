@@ -1,0 +1,10 @@
+---
+# Variables communes à toutes les machines
+
+project_name: tp-cloud-vagrant-ansible
+ansible_user: vagrant
+
+# Ports standards
+ssh_port: 22
+http_port: 80
+https_port: 443

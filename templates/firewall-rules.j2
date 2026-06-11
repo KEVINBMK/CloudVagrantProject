@@ -1,0 +1,7 @@
+# Template règles firewall (ufw)
+# À compléter par MONSHEVIALE KILOR CHRIS
+
+# Ports autorisés
+{% for port in allowed_ports %}
+allow {{ port }}
+{% endfor %}

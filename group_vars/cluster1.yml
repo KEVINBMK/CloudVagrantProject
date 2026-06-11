@@ -1,0 +1,7 @@
+---
+# Variables du Cluster 1 — Nginx + PHP
+
+web_server: nginx
+app_name: cluster1-nginx-app
+app_deploy_path: /var/www/cluster1
+php_version: "8.1"

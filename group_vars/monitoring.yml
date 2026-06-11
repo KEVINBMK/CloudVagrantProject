@@ -1,0 +1,6 @@
+---
+# Variables de monitoring (machine Master)
+
+monitoring_enabled: true
+alert_cpu_threshold: 80
+alert_memory_threshold: 85
