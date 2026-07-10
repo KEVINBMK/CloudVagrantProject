@@ -1,3 +1,13 @@
+
 ---
-# Ouverture de ports via Ansible (équipe cybersécurité)
-# Rôle : firewall (à implémenter)
+- name: Ouvrir les ports de test
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Ouvrir le port 8080
+      community.general.ufw:
+        rule: allow
+        port: "8080"
+        proto: tcp
