@@ -1,3 +1,17 @@
 ---
-# Rôle php — installation PHP-FPM
-# Partagé entre Cluster 1 et Cluster 2
+# Rôle PHP — installation des paquets PHP partagés entre les clusters
+- name: Installer les paquets PHP requis
+  ansible.builtin.apt:
+    name:
+      - "php{{ php_version }}"
+      - "php{{ php_version }}-cli"
+      - "php{{ php_version }}-common"
+      - "php{{ php_version }}-fpm"
+    state: present
+    update_cache: true
+
+- name: Démarrer et activer PHP-FPM
+  ansible.builtin.service:
+    name: "php{{ php_version }}-fpm"
+    state: started
+    enabled: true

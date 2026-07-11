@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Serveur central de monitoring — CloudVagrantProject
+# Auteur : KABENGELE KABENGELE DIEUVIE
+# Exécuté sur master par l'utilisateur deploy
+
+set -u
+
+CONFIG_FILE="/etc/cloud-monitoring/monitoring.conf"
+TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
+
+if [[ -f "${CONFIG_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  source "${CONFIG_FILE}"
+fi
+
+CENTRAL_LOG="${CENTRAL_LOG:-/var/log/cloud-monitoring/central.log}"
+SSH_KEY="${SSH_KEY:-/home/deploy/.ssh/id_ed25519}"
+AGENT_SCRIPT="${AGENT_SCRIPT:-/usr/local/bin/cloud-monitor-agent}"
+DEPLOY_USER="${DEPLOY_USER:-deploy}"
+
+log_central() {
+  local line="$1"
+  echo "${line}"
+  echo "${line}" >> "${CENTRAL_LOG}"
+}
+
+check_target() {
+  local target_name="$1"
+  local target_ip="$2"
+  local agent_output
+  local ssh_rc
+
+  if ping -c 1 -W 2 "${target_ip}" >/dev/null 2>&1; then
+    set +e
+    agent_output="$(ssh \
+      -o BatchMode=yes \
+      -o StrictHostKeyChecking=no \
+      -o UserKnownHostsFile=/dev/null \
+      -o ConnectTimeout=5 \
+      -i "${SSH_KEY}" \
+      "${DEPLOY_USER}@${target_ip}" \
+      "${AGENT_SCRIPT}" 2>&1)"
+    ssh_rc=$?
+    set -u
+    if [[ "${ssh_rc}" -ne 0 ]]; then
+      log_central "${TIMESTAMP} | [ALERT] connexion SSH impossible vers ${target_name}"
+      return 0
+    fi
+    while IFS= read -r agent_line; do
+      [[ -n "${agent_line}" ]] && log_central "${agent_line}"
+    done <<< "${agent_output}"
+  else
+    log_central "${TIMESTAMP} | [ALERT] ${target_name} ${target_ip} inaccessible"
+  fi
+}
+
+log_central "===== Début collecte monitoring ${TIMESTAMP} ====="
+
+{% for target in monitoring_targets %}
+check_target "{{ target.name }}" "{{ target.ip }}"
+{% endfor %}
+
+log_central "===== Fin collecte monitoring $(date '+%Y-%m-%d %H:%M:%S') ====="
+
+exit 0

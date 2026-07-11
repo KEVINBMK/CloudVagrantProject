@@ -1,3 +1,52 @@
 ---
 # Rôle monitoring_agent — agent sur chaque nœud
-# À implémenter par KABENGELE KABENGELE DIEUVIE
+# KABENGELE KABENGELE DIEUVIE
+
+- name: Installer les outils de monitoring locaux
+  ansible.builtin.apt:
+    name:
+      - curl
+      - sysstat
+      - procps
+      - iproute2
+    state: present
+    update_cache: true
+
+- name: Créer le dossier de configuration monitoring
+  ansible.builtin.file:
+    path: "{{ monitor_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Créer le dossier des journaux monitoring
+  ansible.builtin.file:
+    path: "{{ monitor_log_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0755"
+
+- name: Installer le fichier de configuration monitoring
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../templates/monitoring-config.j2"
+    dest: "{{ monitor_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Installer le script agent de monitoring
+  ansible.builtin.template:
+    src: monitor-agent.sh.j2
+    dest: "{{ monitor_agent_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Planifier l'exécution périodique de l'agent
+  ansible.builtin.cron:
+    name: cloud-monitor-agent
+    user: "{{ deploy_user }}"
+    minute: "*/{{ monitor_interval_minutes }}"
+    job: "{{ monitor_agent_script }} >> {{ monitor_agent_log }} 2>&1"

@@ -1,3 +1,43 @@
 ---
 # Rôle monitoring_server — supervision centralisée (Master)
-# À implémenter par KABENGELE KABENGELE DIEUVIE
+# KABENGELE KABENGELE DIEUVIE
+
+- name: Installer les outils du serveur central
+  ansible.builtin.apt:
+    name:
+      - curl
+      - iputils-ping
+      - openssh-client
+    state: present
+    update_cache: true
+
+- name: S'assurer que le dossier de configuration existe
+  ansible.builtin.file:
+    path: "{{ monitor_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: S'assurer que le dossier des journaux existe
+  ansible.builtin.file:
+    path: "{{ monitor_log_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0755"
+
+- name: Installer le script central de monitoring
+  ansible.builtin.template:
+    src: monitor-central.sh.j2
+    dest: "{{ monitor_central_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Planifier l'exécution périodique du serveur central
+  ansible.builtin.cron:
+    name: cloud-monitor-central
+    user: "{{ deploy_user }}"
+    minute: "*/{{ monitor_interval_minutes }}"
+    job: "{{ monitor_central_script }} >> {{ monitor_central_log }} 2>&1"

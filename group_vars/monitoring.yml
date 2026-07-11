@@ -1,6 +1,51 @@
 ---
-# Variables de monitoring (machine Master)
+# Variables de monitoring — KABENGELE KABENGELE DIEUVIE
 
-monitoring_enabled: true
-alert_cpu_threshold: 80
-alert_memory_threshold: 85
+deploy_user: deploy
+
+monitor_cpu_threshold: 80
+monitor_memory_threshold: 85
+monitor_interval_minutes: 5
+
+monitor_log_dir: /var/log/cloud-monitoring
+monitor_agent_log: /var/log/cloud-monitoring/agent.log
+monitor_central_log: /var/log/cloud-monitoring/central.log
+
+monitor_config_dir: /etc/cloud-monitoring
+monitor_config_file: /etc/cloud-monitoring/monitoring.conf
+
+monitor_agent_script: /usr/local/bin/cloud-monitor-agent
+monitor_central_script: /usr/local/bin/cloud-monitor-central
+
+monitored_services:
+  - nginx
+  - apache2
+
+monitoring_targets:
+  - name: master
+    ip: 192.168.56.10
+    http_check: false
+
+  - name: cluster1-node1
+    ip: 192.168.56.11
+    http_check: true
+
+  - name: cluster1-node2
+    ip: 192.168.56.12
+    http_check: true
+
+  - name: cluster1-node3
+    ip: 192.168.56.13
+    http_check: true
+
+  - name: cluster2-node1
+    ip: 192.168.56.21
+    http_check: true
+
+  - name: cluster2-node2
+    ip: 192.168.56.22
+    http_check: true
+
+  - name: cluster2-node3
+    ip: 192.168.56.23
+    http_check: true

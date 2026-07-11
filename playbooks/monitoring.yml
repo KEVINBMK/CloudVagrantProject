@@ -1,3 +1,18 @@
 ---
-# Monitoring et supervision
-# Rôles : monitoring_server, monitoring_agent (à implémenter)
+- name: Installer les agents de monitoring
+  hosts: all
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/monitoring.yml
+  roles:
+    - monitoring_agent
+
+- name: Installer le serveur central de monitoring
+  hosts: master
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../group_vars/monitoring.yml
+  roles:
+    - monitoring_server
