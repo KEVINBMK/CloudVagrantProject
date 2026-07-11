@@ -1,6 +1,5 @@
 ---
-# Playbook principal — composants déjà fusionnés dans main
-# Nginx (José) et sécurité (Chris) seront ajoutés après leurs PR
+# Playbook principal — point d'entrée du déploiement complet
 
 - name: Vérifier la connectivité de toutes les machines
   hosts: all
@@ -10,5 +9,8 @@
       ansible.builtin.ping:
 
 - import_playbook: users.yml
+- import_playbook: install_nginx.yml
 - import_playbook: install_apache.yml
 - import_playbook: monitoring.yml
+- import_playbook: firewall.yml
+- import_playbook: install_security_tools.yml

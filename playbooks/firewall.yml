@@ -1,3 +1,43 @@
 ---
-# Configuration du firewall (ufw)
-# Rôle : firewall (à implémenter)
+- name: Configurer le pare-feu UFW
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Installer UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+        update_cache: yes
+
+    - name: Autoriser les connexions SSH
+      community.general.ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Autoriser HTTP
+      community.general.ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+
+    - name: Autoriser HTTPS
+      community.general.ufw:
+        rule: allow
+        port: "443"
+        proto: tcp
+
+    - name: Bloquer les autres connexions entrantes
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Autoriser les connexions sortantes
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Activer UFW
+      community.general.ufw:
+        state: enabled

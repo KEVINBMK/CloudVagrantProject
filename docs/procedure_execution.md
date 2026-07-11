@@ -34,17 +34,23 @@ Les 7 machines doivent répondre `pong`.
 ansible-playbook playbooks/site.yml
 ```
 
-Pour le moment, `site.yml` déploie uniquement :
+`site.yml` déploie :
 - utilisateurs et SSH ;
+- Nginx + PHP (Cluster 1) ;
 - Apache + PHP (Cluster 2) ;
-- monitoring.
-
-Nginx (José) et la sécurité (Chris) seront intégrés après leurs Pull Requests.
+- monitoring ;
+- firewall ;
+- outils de sécurité.
 
 ## Étape 5 — Tests fonctionnels
 
 ```bash
-# Cluster 2 (Apache) — disponible maintenant
+# Cluster 1 (Nginx)
+curl http://192.168.56.11
+curl http://192.168.56.12
+curl http://192.168.56.13
+
+# Cluster 2 (Apache)
 curl http://192.168.56.21
 curl http://192.168.56.22
 curl http://192.168.56.23
@@ -55,13 +61,6 @@ ansible all -b -m command -a "id deploy"
 # Monitoring
 ansible all -b -m stat -a "path=/usr/local/bin/cloud-monitor-agent"
 ansible master -b -m stat -a "path=/usr/local/bin/cloud-monitor-central"
-```
-
-```bash
-# Cluster 1 (Nginx) — après la livraison de José
-curl http://192.168.56.11
-curl http://192.168.56.12
-curl http://192.168.56.13
 ```
 
 ## Étape 6 — Arrêt des VMs (Windows / PowerShell)

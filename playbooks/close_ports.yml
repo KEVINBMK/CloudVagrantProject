@@ -1,3 +1,13 @@
 ---
-# Fermeture de ports via Ansible (équipe cybersécurité)
-# Rôle : firewall (à implémenter)
+- name: Fermer les ports de test
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Supprimer l'autorisation du port 8080
+      community.general.ufw:
+        rule: allow
+        port: "8080"
+        proto: tcp
+        delete: true
