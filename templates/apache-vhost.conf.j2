@@ -1,2 +1,16 @@
-# Le VirtualHost Cluster 2 est défini dans :
-# roles/apache/templates/apache-vhost.conf.j2
+# Template Apache VirtualHost — Cluster 2
+# À compléter par TSHILUMBA TSHILUMBA JONATHAN
+
+<VirtualHost *:80>
+    ServerName {{ ansible_hostname }}
+    DocumentRoot {{ app_deploy_path }}
+
+    <Directory {{ app_deploy_path }}>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ app_name }}_error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ app_name }}_access.log combined
+</VirtualHost>
