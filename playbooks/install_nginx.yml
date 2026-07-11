@@ -1,3 +1,23 @@
 ---
-# Installation Nginx sur le Cluster 1
-# Rôle : nginx (à implémenter)
+- name: Installer Nginx et PHP sur Cluster 1
+  hosts: cluster1
+  become: true
+  roles:
+    - php
+    - nginx
+  tasks:
+    - name: Créer le répertoire de déploiement
+      ansible.builtin.file:
+        path: "{{ app_deploy_path }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Déployer l'application PHP
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../apps/{{ app_name }}/"
+        dest: "{{ app_deploy_path }}/"
+        owner: www-data
+        group: www-data
+        mode: "0644"
