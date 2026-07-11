@@ -2,55 +2,84 @@
 
 ## Étape 1 — Prérequis
 
-Vérifier l'installation de VirtualBox, Vagrant et Ansible sur la machine hôte.
+- **Windows / PowerShell** : VirtualBox et Vagrant
+- **WSL / Linux** : Ansible (≥ 2.14)
 
-## Étape 2 — Création des VMs
+Ne pas installer Ansible dans PowerShell Windows.
+Ne pas exécuter Vagrant depuis l'intérieur d'une VM.
 
-```bash
-cd tp-cloud-vagrant-ansible
+## Étape 2 — Création des VMs (Windows / PowerShell)
+
+```powershell
+cd CloudVagrantProject
 vagrant up
+vagrant status
 ```
 
-Durée estimée : 10–20 minutes (première exécution, téléchargement de l'image Ubuntu).
+Durée estimée : 10–20 minutes (première exécution, téléchargement de l'image Ubuntu Jammy).
 
-## Étape 3 — Vérification
+## Étape 3 — Vérification Ansible (WSL / Linux)
 
 ```bash
-# État des machines
-vagrant status
-
-# Test SSH sur le master
-vagrant ssh master
-
-# Test Ansible (depuis le dossier du projet)
+# Depuis WSL, se placer dans le dossier du projet (chemin Windows monté sous /mnt/c/...)
+cd /mnt/c/.../CloudVagrantProject
 ansible all -m ping
 ```
 
-## Étape 4 — Déploiement Ansible
+Les 7 machines doivent répondre `pong`.
+
+## Étape 4 — Déploiement Ansible (WSL / Linux)
 
 ```bash
 ansible-playbook playbooks/site.yml
 ```
 
+Pour le moment, `site.yml` déploie uniquement :
+- utilisateurs et SSH ;
+- Apache + PHP (Cluster 2) ;
+- monitoring.
+
+Nginx (José) et la sécurité (Chris) seront intégrés après leurs Pull Requests.
+
 ## Étape 5 — Tests fonctionnels
 
 ```bash
-# Cluster 1 (Nginx)
-curl http://192.168.56.11
-curl http://192.168.56.12
-curl http://192.168.56.13
-
-# Cluster 2 (Apache)
+# Cluster 2 (Apache) — disponible maintenant
 curl http://192.168.56.21
 curl http://192.168.56.22
 curl http://192.168.56.23
+
+# Utilisateur deploy
+ansible all -b -m command -a "id deploy"
+
+# Monitoring
+ansible all -b -m stat -a "path=/usr/local/bin/cloud-monitor-agent"
+ansible master -b -m stat -a "path=/usr/local/bin/cloud-monitor-central"
 ```
 
-## Étape 6 — Réinitialisation complète
-
 ```bash
+# Cluster 1 (Nginx) — après la livraison de José
+curl http://192.168.56.11
+curl http://192.168.56.12
+curl http://192.168.56.13
+```
+
+## Étape 6 — Arrêt des VMs (Windows / PowerShell)
+
+```powershell
+vagrant halt
+```
+
+## Étape 7 — Réinitialisation complète (si nécessaire)
+
+```powershell
 vagrant destroy -f
 vagrant up
+```
+
+Puis depuis WSL :
+
+```bash
 ansible-playbook playbooks/site.yml
 ```
 
@@ -58,7 +87,8 @@ ansible-playbook playbooks/site.yml
 
 | Problème | Solution |
 |----------|----------|
-| VM ne démarre pas | Vérifier que VirtualBox est installé et que la virtualisation est activée dans le BIOS |
+| VM ne démarre pas | Vérifier VirtualBox et la virtualisation BIOS |
 | `ansible ping` échoue | Attendre la fin du provisionnement shell, puis relancer |
 | IP inaccessible | Vérifier le réseau host-only VirtualBox (192.168.56.0/24) |
 | Clé SSH introuvable | Lancer `vagrant up` au moins une fois pour générer `.vagrant/` |
+| Ansible introuvable sous Windows | Utiliser WSL2 (Ubuntu) |
