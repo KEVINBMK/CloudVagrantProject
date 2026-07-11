@@ -1,3 +1,8 @@
 ---
-# Installation Apache sur le Cluster 2
-# Rôle : apache (à implémenter)
+- name: Installation Apache et PHP sur le Cluster 2
+  hosts: cluster2
+  become: true
+  gather_facts: true
+  roles:
+    - php
+    - apache
