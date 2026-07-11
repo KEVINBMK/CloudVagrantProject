@@ -1,11 +1,14 @@
 ---
-# Playbook principal — point d'entrée du déploiement
-# À compléter au fur et à mesure de l'ajout des rôles
+# Playbook principal — composants déjà fusionnés dans main
+# Nginx (José) et sécurité (Chris) seront ajoutés après leurs PR
 
-- name: Déploiement global de l'infrastructure
+- name: Vérifier la connectivité de toutes les machines
   hosts: all
-  gather_facts: true
-
+  gather_facts: false
   tasks:
-    - name: Vérifier la connectivité
+    - name: Tester la connexion Ansible
       ansible.builtin.ping:
+
+- import_playbook: users.yml
+- import_playbook: install_apache.yml
+- import_playbook: monitoring.yml
