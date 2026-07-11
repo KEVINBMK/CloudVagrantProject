@@ -1,5 +1,5 @@
 ---
-# Rôle PHP — installation des paquets PHP partagés entre les clusters
+# Rôle PHP — partagé Cluster 1 (Nginx) et Cluster 2 (Apache)
 - name: Installer les paquets PHP requis
   ansible.builtin.apt:
     name:
@@ -7,6 +7,8 @@
       - "php{{ php_version }}-cli"
       - "php{{ php_version }}-common"
       - "php{{ php_version }}-fpm"
+      - "php{{ php_version }}-curl"
+      - "php{{ php_version }}-mbstring"
     state: present
     update_cache: true
 
