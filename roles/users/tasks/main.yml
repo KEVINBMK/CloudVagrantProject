@@ -1,3 +1,61 @@
 ---
-# Rôle users — gestion des utilisateurs et SSH
-# À implémenter
+# Rôle users — utilisateurs et SSH (KABENGELE KABENGELE DIEUVIE)
+
+- name: Installer openssh-server
+  ansible.builtin.apt:
+    name: openssh-server
+    state: present
+    update_cache: true
+
+- name: Démarrer et activer le service SSH
+  ansible.builtin.service:
+    name: ssh
+    state: started
+    enabled: true
+
+- name: Créer l'utilisateur deploy
+  ansible.builtin.user:
+    name: deploy
+    shell: /bin/bash
+    groups: sudo
+    append: true
+    create_home: true
+    password_lock: true
+
+- name: Créer le dossier .ssh de deploy
+  ansible.builtin.file:
+    path: /home/deploy/.ssh
+    state: directory
+    owner: deploy
+    group: deploy
+    mode: "0700"
+
+- name: Générer une paire de clés ED25519 pour deploy sur master
+  ansible.builtin.command:
+    cmd: ssh-keygen -t ed25519 -f /home/deploy/.ssh/id_ed25519 -N "" -C "deploy@master"
+    creates: /home/deploy/.ssh/id_ed25519
+  become: true
+  become_user: deploy
+  when: inventory_hostname == 'master'
+
+- name: Lire la clé publique deploy depuis master
+  ansible.builtin.slurp:
+    src: /home/deploy/.ssh/id_ed25519.pub
+  register: deploy_pubkey_slurp
+  delegate_to: master
+  run_once: true
+
+- name: Distribuer la clé publique dans authorized_keys
+  ansible.builtin.lineinfile:
+    path: /home/deploy/.ssh/authorized_keys
+    line: "{{ deploy_pubkey_slurp.content | b64decode | trim }}"
+    create: true
+    owner: deploy
+    group: deploy
+    mode: "0600"
+
+- name: Vérifier que le service SSH est actif
+  ansible.builtin.command: systemctl is-active ssh
+  register: ssh_active_check
+  changed_when: false
+  failed_when: ssh_active_check.stdout != 'active'

@@ -1,11 +1,11 @@
-# Template configuration monitoring
-# À compléter par KABENGELE KABENGELE DIEUVIE
+# Configuration monitoring CloudVagrantProject
+# Généré par Ansible — ne pas éditer à la main
 
-# Seuils d'alerte
-cpu_threshold: {{ alert_cpu_threshold }}
-memory_threshold: {{ alert_memory_threshold }}
-
-# Hôtes surveillés
-{% for host in groups['all'] %}
-- {{ hostvars[host]['ansible_host'] }}
-{% endfor %}
+CPU_THRESHOLD={{ monitor_cpu_threshold }}
+MEMORY_THRESHOLD={{ monitor_memory_threshold }}
+LOG_DIR="{{ monitor_log_dir }}"
+AGENT_LOG="{{ monitor_agent_log }}"
+CENTRAL_LOG="{{ monitor_central_log }}"
+DEPLOY_USER="{{ deploy_user }}"
+AGENT_SCRIPT="{{ monitor_agent_script }}"
+SSH_KEY="/home/{{ deploy_user }}/.ssh/id_ed25519"

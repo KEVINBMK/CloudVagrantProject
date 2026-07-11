@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Agent de monitoring local — CloudVagrantProject
+# Auteur : KABENGELE KABENGELE DIEUVIE
+
+set -u
+
+CONFIG_FILE="/etc/cloud-monitoring/monitoring.conf"
+HOSTNAME="$(hostname)"
+TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
+
+if [[ -f "${CONFIG_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  source "${CONFIG_FILE}"
+fi
+
+CPU_THRESHOLD="${CPU_THRESHOLD:-80}"
+MEMORY_THRESHOLD="${MEMORY_THRESHOLD:-85}"
+AGENT_LOG="${AGENT_LOG:-/var/log/cloud-monitoring/agent.log}"
+
+log_line() {
+  local line="$1"
+  echo "${line}"
+  echo "${line}" >> "${AGENT_LOG}"
+}
+
+# --- CPU (vmstat) ---
+CPU_IDLE="$(vmstat 1 2 | tail -1 | awk '{print $15}')"
+CPU_USED=$((100 - CPU_IDLE))
+if [[ "${CPU_USED}" -ge "${CPU_THRESHOLD}" ]]; then
+  CPU_STATUS="ALERT"
+else
+  CPU_STATUS="OK"
+fi
+log_line "${TIMESTAMP} | ${HOSTNAME} | CPU=${CPU_USED}% | ${CPU_STATUS}"
+
+# --- Mémoire ---
+MEM_TOTAL="$(awk '/MemTotal/ {print $2}' /proc/meminfo)"
+MEM_AVAILABLE="$(awk '/MemAvailable/ {print $2}' /proc/meminfo)"
+if [[ "${MEM_TOTAL}" -gt 0 ]]; then
+  MEM_USED=$(( (MEM_TOTAL - MEM_AVAILABLE) * 100 / MEM_TOTAL ))
+else
+  MEM_USED=0
+fi
+if [[ "${MEM_USED}" -ge "${MEMORY_THRESHOLD}" ]]; then
+  MEM_STATUS="ALERT"
+else
+  MEM_STATUS="OK"
+fi
+log_line "${TIMESTAMP} | ${HOSTNAME} | MEMORY=${MEM_USED}% | ${MEM_STATUS}"
+
+# --- Services nginx / apache2 ---
+WEB_PRESENT=0
+for SERVICE in nginx apache2; do
+  if [[ -f "/lib/systemd/system/${SERVICE}.service" ]] || [[ -f "/etc/systemd/system/${SERVICE}.service" ]]; then
+    if systemctl is-active --quiet "${SERVICE}"; then
+      log_line "${TIMESTAMP} | ${HOSTNAME} | SERVICE=${SERVICE} | OK"
+      WEB_PRESENT=1
+    else
+      log_line "${TIMESTAMP} | ${HOSTNAME} | SERVICE=${SERVICE} | ALERT"
+      WEB_PRESENT=1
+    fi
+  else
+    log_line "${TIMESTAMP} | ${HOSTNAME} | SERVICE=${SERVICE} | INFO | ${SERVICE} non installé sur ce nœud"
+  fi
+done
+
+# --- HTTP local si un serveur web est présent ou si le port 80 écoute ---
+PORT80_LISTEN=0
+if ss -ltn 2>/dev/null | grep -q ':80 '; then
+  PORT80_LISTEN=1
+fi
+
+if [[ "${WEB_PRESENT}" -eq 1 ]] || [[ "${PORT80_LISTEN}" -eq 1 ]]; then
+  HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 3 http://127.0.0.1 || echo '000')"
+  if [[ "${HTTP_CODE}" =~ ^(200|301|302)$ ]]; then
+    log_line "${TIMESTAMP} | ${HOSTNAME} | HTTP=127.0.0.1 code=${HTTP_CODE} | OK"
+  else
+    log_line "${TIMESTAMP} | ${HOSTNAME} | HTTP=127.0.0.1 code=${HTTP_CODE} | ALERT"
+  fi
+else
+  log_line "${TIMESTAMP} | ${HOSTNAME} | HTTP | INFO | aucun serveur web détecté, test HTTP ignoré"
+fi
+
+exit 0
